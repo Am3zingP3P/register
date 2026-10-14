@@ -1,8 +1,12 @@
 {
-  "owner": {
-    "github": "am3zingp3p"
-  },
-  "records": {
-    "CNAME": "am3zingp3p.github.io"
-  }
+    "records":  {
+                    "CNAME":  "b0fd3168f69deb55.vercel-dns-017.com.",
+                    "TXT":  {
+                                "_vercel":  "vc-domain-verify=slavojlak.addictedto.beer,ae18f64a46fe51226ef8"
+                            }
+                },
+    "description":  "Slavojlak Chores",
+    "owner":  {
+                  "github":  "am3zingp3p"
+              }
 }
