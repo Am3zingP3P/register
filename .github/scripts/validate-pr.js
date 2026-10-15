@@ -34,6 +34,11 @@ const RESERVED = new Set([
   "_acme-challenge", "_dmarc", "autodiscover", "autoconfig", "localhost",
 ]);
 
+// Platform verification hostnames are maintainer-managed, not user subdomains.
+const SYSTEM_SUBDOMAIN_OWNERS = new Map([
+  ["_vercel", new Set(["am3zingp3p"])],
+]);
+
 module.exports = async function validate({ github, context, core }) {
   const { owner, repo } = context.repo;
   const pr = context.payload.pull_request;
@@ -96,7 +101,16 @@ module.exports = async function validate({ github, context, core }) {
     }
 
     // 5) Validate the folder name (and the record label, unless it is the apex).
-    const nameErrors = validateName(sub);
+    const systemOwners = SYSTEM_SUBDOMAIN_OWNERS.get(sub);
+    if (systemOwners && !systemOwners.has(author.toLowerCase())) {
+      errors.push(`\`${sub}.${domain}\` is a maintainer-managed verification name and cannot be registered by @${author}.`);
+      continue;
+    }
+    if (systemOwners && label !== "@") {
+      errors.push(`\`${sub}.${domain}\` must be defined in its \`@.json\` file.`);
+      continue;
+    }
+    const nameErrors = systemOwners ? [] : validateName(sub);
     // Record labels may start with "_" (e.g. `_railway-verify` for TXT verification).
     if (!isApex) nameErrors.push(...validateName(label.replace(/^_/, "")));
     if (nameErrors.length) {
@@ -144,6 +158,13 @@ module.exports = async function validate({ github, context, core }) {
     if (contentErrors.length) {
       errors.push(...contentErrors.map((e) => `\`${fqdn}\`: ${e}`));
       continue;
+    }
+    if (systemOwners) {
+      const recordTypes = Object.keys(proposed.records || {});
+      if (recordTypes.length !== 1 || recordTypes[0] !== "TXT") {
+        errors.push(`\`${fqdn}\`: maintainer-managed verification names may contain only a TXT record.`);
+        continue;
+      }
     }
 
     ok.push(anchorBase
