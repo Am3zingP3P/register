@@ -1,0 +1,9 @@
+{
+  "owner": {
+    "github": "am3zingp3p"
+  },
+  "description": "Vercel domain ownership verification",
+  "records": {
+    "TXT": "vc-domain-verify=slavojlak.addictedto.beer,ae18f64a46fe51226ef8"
+  }
+}
